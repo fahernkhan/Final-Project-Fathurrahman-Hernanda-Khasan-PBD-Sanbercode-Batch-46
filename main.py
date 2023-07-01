@@ -1,8 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from routers import token
-from fastapi import Depends
-from fastapi import HTTPException
 from mysql.connector import connect
 from dotenv import dotenv_values
 from fastapi.responses import JSONResponse
@@ -10,7 +8,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 security = HTTPBearer()
-
+app.include_router(token.router)
 class User(BaseModel): 
     aksi: str
     userid: int = None
@@ -67,7 +65,7 @@ def get_movies():
         host=params.get("MYSQL_HOST"),
         user=params.get("MYSQL_USERNAME"),
         password=params.get("MYSQL_PASSWORD"),
-        database="rentalfilm",
+        database =params.get("MYSQL_DB"),
     )
 
     # Membuat cursor
@@ -96,7 +94,7 @@ def get_peminjaman(current_user: dict = Depends(authenticate_user)):
         host=params.get("MYSQL_HOST"),
         user=params.get("MYSQL_USERNAME"),
         password=params.get("MYSQL_PASSWORD"),
-        database="rentalfilm",
+        database =params.get("MYSQL_DB"),
     )
 
     # Membuat cursor
