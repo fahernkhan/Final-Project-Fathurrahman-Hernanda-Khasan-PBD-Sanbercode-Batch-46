@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from routers import movies, peminjaman, user, token
+from routers import token
 from fastapi import Depends
 from fastapi import HTTPException
 from mysql.connector import connect
 from dotenv import dotenv_values
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from routers import peminjaman
 
 app = FastAPI()
 security = HTTPBearer()
@@ -22,14 +21,10 @@ class Peminjaman(BaseModel):
     peminjamanid: int = None
     data: dict
 
+app.include_router(token.router)
 
 def authenticate_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    # Kode autentikasi pengguna di sini
-    # Anda dapat memeriksa token JWT di credentials.credentials
-    # Jika pengguna valid, kembalikan informasi pengguna, misalnya username
-    # Jika pengguna tidak valid, raise HTTPException dengan status_code 401
 
-    # Contoh autentikasi sederhana hanya untuk tujuan demonstrasi
     if credentials.credentials == "valid_token":
         return {"username": "admin"}
     else:
@@ -42,7 +37,7 @@ def execute_query(query, params=None):
         host=params.get("MYSQL_HOST"),
         user=params.get("MYSQL_USERNAME"),
         password=params.get("MYSQL_PASSWORD"),
-        database="rentalfilm",
+        database =params.get("MYSQL_DB")
     )
 
     # Membuat cursor
@@ -63,7 +58,7 @@ def execute_query(query, params=None):
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, world!"}
+    return {"message": "selamat datang di rentalrentalfilm"}
 
 @app.get("/api/movies")
 def get_movies():
@@ -174,8 +169,24 @@ def manage_user(user: User, current_user: dict = Depends(authenticate_user)):
 
     return {"message": message}
 
-app.include_router(peminjaman.router)
+    @app.post("/api/peminjaman")
+    def manage_peminjaman(user: User, current_user: dict = Depends(authenticate_user)):
+        if current_user["username"] != "admin":
+            raise HTTPException(status_code=403, detail="Forbidden")
 
-app.include_router(token.router)
+        aksi = peminjaman.aksi
+        peminjamanid = peminjaman.peminjamanid
+        data = peminjaman.data
 
+        if aksi == "N":
+            # Code for adding a new peminjaman
+            # ...
+            message = "Peminjaman added successfully"
+        elif aksi == "E":
+            # Code for updating a peminjaman
+            # ...
+            message = "Peminjaman updated successfully"
+        else:
+            raise HTTPException(status_code=400, detail="Invalid action")
 
+        return {"message": message}

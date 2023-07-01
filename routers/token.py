@@ -1,22 +1,35 @@
+import jwt
+from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 router = APIRouter()
 
-# Definisikan model untuk payload
-class TokenRequest(BaseModel):
-    username: str
-    password: str
+# Secret key for signing the token
+SECRET_KEY = "pbdbatch46"
+
+# Token expiration time (e.g., 1 hour)
+TOKEN_EXPIRATION = timedelta(hours=1)
 
 @router.post("/api/token")
-def generate_token(request: TokenRequest):
-    # Periksa apakah username dan password valid
-    # Jika valid, kirimkan token akses
-    # Jika tidak valid, lempar HTTPException dengan status_code 401 (Unauthorized)
-    
-    # Contoh implementasi sederhana, silakan sesuaikan dengan kebutuhan Anda
-    if request.username == "admin" and request.password == "admin123":
-        return {"access_token": "your_access_token"}
+def request_token(username: str, password: str):
+    if username == "admin" and password == "admin123":
+        # Generate the token
+        token = generate_token(username)
 
-    # Jika username atau password tidak valid
-    raise HTTPException(status_code=401, detail="Invalid username or password")
+        # Return the token
+        return {"access_token": token}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+def generate_token(username: str) -> str:
+    # Set the token expiration time
+    expiration = datetime.utcnow() + TOKEN_EXPIRATION
+
+    # Create the token payload with the username and expiration time
+    payload = {"username": username, "exp": expiration}
+
+    # Generate the token
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+    # Return the token as a string
+    return token.decode("utf-8")

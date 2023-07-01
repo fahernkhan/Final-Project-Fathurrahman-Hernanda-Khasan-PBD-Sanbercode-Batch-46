@@ -1,0 +1,8 @@
+requests
+fastapi
+mysql-connector-python
+uvicorn[standard]
+python-dotenv
+pyjwt
+python-jose[cryptography]
+swagger-ui
