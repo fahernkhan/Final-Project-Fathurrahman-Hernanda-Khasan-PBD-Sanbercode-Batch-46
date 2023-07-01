@@ -5,6 +5,7 @@ from mysql.connector import connect
 from dotenv import dotenv_values
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from fastapi.openapi.utils import get_openapi
 
 app = FastAPI()
 security = HTTPBearer()
@@ -177,13 +178,64 @@ def manage_user(user: User, current_user: dict = Depends(authenticate_user)):
         data = peminjaman.data
 
         if aksi == "N":
-            # Code for adding a new peminjaman
-            # ...
-            message = "Peminjaman added successfully"
+            db = connect(
+                host=params.get("MYSQL_HOST"),
+                user=params.get("MYSQL_USERNAME"),
+                password=params.get("MYSQL_PASSWORD"),
+                database =params.get("MYSQL_DB"),
+            )
+            # Membuat cursor
+            cursor = db.cursor(dictionary=True)
+
+            # Query untuk mengambil data peminjaman
+            query ="""
+                    INSERT INTO peminjaman (movieid, userid, status)
+                    VALUES (%(movieid)s, %(userid)s, %(status)s)
+                    """
+
+            # Menjalankan query
+            cursor.execute(query)
+
+            # Mendapatkan hasil query
+            peminjaman = cursor.fetchall()
+
+            # Menutup kursor dan koneksi basis data
+            cursor.close()
+            db.close()
+
+            # Mengembalikan data peminjaman dalam format JSON
+            return peminjaman
+
+
         elif aksi == "E":
-            # Code for updating a peminjaman
-            # ...
-            message = "Peminjaman updated successfully"
+            db = connect(
+                host=params.get("MYSQL_HOST"),
+                user=params.get("MYSQL_USERNAME"),
+                password=params.get("MYSQL_PASSWORD"),
+                database =params.get("MYSQL_DB"),
+            )
+            # Membuat cursor
+            cursor = db.cursor(dictionary=True)
+
+            # Query untuk update data peminjaman
+            query = """
+                    UPDATE peminjaman
+                    SET username = %(username)s, status = %(status)s
+                    WHERE id = %(peminjamanid)s
+                    """
+
+            # Menjalankan query
+            cursor.execute(query)
+
+            # Mendapatkan hasil query
+            peminjaman = cursor.fetchall()
+
+            # Menutup kursor dan koneksi basis data
+            cursor.close()
+            db.close()
+
+            # Mengembalikan data peminjaman dalam format JSON
+            return peminjaman
         else:
             raise HTTPException(status_code=400, detail="Invalid action")
 

@@ -1,6 +1,7 @@
 import jwt
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException
+from fastapi.openapi.utils import get_openapi
 
 router = APIRouter()
 
